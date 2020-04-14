@@ -21,6 +21,14 @@ class Service<T:GenericModel>: ObservableObject {
         }
     }
     
+    @Published var currentUser:UserModel? {
+        didSet {
+            DispatchQueue.main.async {
+                self.objectWillChange.send()
+            }
+        }
+    }
+    
     func makeURL( route: String) -> URL {
         return URL(string:"http://localhost:8080/\(route)")!
     }
@@ -75,3 +83,19 @@ class Service<T:GenericModel>: ObservableObject {
     
 }
 
+
+extension Service {
+    
+    func signin() {
+        
+    }
+    
+    func signup() {
+        
+    }
+
+    func signout() {
+        
+    }
+    
+}

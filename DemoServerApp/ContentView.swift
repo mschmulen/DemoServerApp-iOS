@@ -13,8 +13,16 @@ struct ContentView: View {
     
     @EnvironmentObject var service: Service<BoatModel>
     
+    var profileButtonNavigationLink: some View {
+        NavigationLink(destination: UserProfileView()) {
+            Image(systemName: "person.crop.circle")
+                .imageScale(.large)
+                .accessibility(label: Text("User Profile"))
+                .padding()
+        }
+    }
+    
     var body: some View {
-        
         NavigationView {
             Form {
                 Text("Hello, Swift Server \(service.models.count)")
@@ -40,8 +48,12 @@ struct ContentView: View {
                     }
                 }
             }//end form
-        }.onAppear {
-            self.service.fetch()
+                .navigationBarTitle( Text("Boats") )
+                .navigationBarItems( trailing: profileButtonNavigationLink )
+                .onAppear {
+                    self.service.fetch()
+            }
+            
         }
     }//end body
 }//end struct
