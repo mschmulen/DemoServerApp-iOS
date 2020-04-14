@@ -22,38 +22,37 @@ struct ContentView: View {
         }
     }
     
+    var newModelButton: some View {
+        NavigationLink(destination: ModelDetailView(model:BoatModel(id: nil, title: "new"))) {
+            Image(systemName: "plus.circle")
+                .imageScale(.large)
+                .accessibility(label: Text("New Model"))
+                .padding()
+        }
+    }
+    
     var body: some View {
         NavigationView {
             Form {
-                Text("Hello, Swift Server \(service.models.count)")
-                
-                Button(action: {
-                    self.service.create(
-                        BoatModel(id: nil, title: "boat_\(Int.random(in: 1...100))")
-                    )
-                    self.service.fetch()
-                }) {
-                    Text("create")
-                }
-                
                 Button(action: {
                     self.service.fetch()
                 }) {
-                    Text("fetch")
+                    Text("refresh")
                 }
                 
-                ForEach( service.models, id:\.id) { model in
-                    NavigationLink(destination: ModelDetailView(model:model)) {
-                        Text("\(model.title)")
+                Section(header: Text("models")) {
+                    ForEach( service.models, id:\.id) { model in
+                        NavigationLink(destination: ModelDetailView(model:model)) {
+                            Text("\(model.title)")
+                        }
                     }
                 }
             }//end form
                 .navigationBarTitle( Text("Boats") )
-                .navigationBarItems( trailing: profileButtonNavigationLink )
+                .navigationBarItems( leading: profileButtonNavigationLink, trailing: newModelButton  )
                 .onAppear {
                     self.service.fetch()
             }
-            
         }
     }//end body
 }//end struct

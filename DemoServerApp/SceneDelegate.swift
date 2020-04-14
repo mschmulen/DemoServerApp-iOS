@@ -22,6 +22,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         service = Service<BoatModel>()
         
+        service.attemptAutoSignIn() { result in
+            print( " AutoSignIn \(result)" )
+        }
+        
         // Create the SwiftUI view that provides the window contents.
         let contentView = ContentView().environmentObject(service)
         

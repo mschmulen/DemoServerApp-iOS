@@ -10,6 +10,7 @@ import Foundation
 
 protocol GenericModel: Codable {
     static var route: String { get }
+    var id:UUID? { get }
 }
 
 struct BoatModel: GenericModel {
@@ -36,4 +37,19 @@ struct BoatModel: GenericModel {
     
 }
 
+public struct PaginatedRequest {
+    let page:Int
+    let per:Int
+}
 
+public struct PagedResponse<T:Codable>: Codable {
+    
+    public var items: [T]
+    public var metadata: MetaData
+    
+    public struct MetaData: Codable {
+        var per: Int
+        var total: Int
+        var page: Int
+    }
+}

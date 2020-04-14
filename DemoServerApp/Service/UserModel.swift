@@ -26,3 +26,33 @@ struct UserModel: GenericModel {
     
 }
 
+extension UserModel {
+    
+    public struct UserSignUpRequest: Codable {
+        public var email:String
+        public var password:String
+    }
+
+    public struct UserSignInRequest: Codable {
+        public var email: String
+        public var password: String
+    }
+
+    public struct UserAuthResponse: Codable {
+        public var email: String
+        public var reason:String
+        public var id: UUID?
+        public var sessionToken: String?
+    }
+    
+    public struct UserSignOutRequest: Codable {
+        public var email:String
+        public var password:String
+    }
+    
+    public struct UserSignOutResponse: Codable {
+        public var id:UUID
+        public var email:String
+    }
+    
+}

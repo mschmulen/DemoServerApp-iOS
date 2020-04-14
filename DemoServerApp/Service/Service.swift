@@ -21,7 +21,7 @@ class Service<T:GenericModel>: ObservableObject {
         }
     }
     
-    @Published var currentUser:UserModel? {
+    @Published var currentUserAuth:UserModel.UserAuthResponse? {
         didSet {
             DispatchQueue.main.async {
                 self.objectWillChange.send()
@@ -29,13 +29,40 @@ class Service<T:GenericModel>: ObservableObject {
         }
     }
     
-    func makeURL( route: String) -> URL {
-        return URL(string:"http://localhost:8080/\(route)")!
+}
+
+extension Service {
+    
+    enum ServiceError: Error {
+        case requestFailed
+        case invalidData
+        case encodedError
+        case encodeError
+        case networkFailure( Error )
+        case unknownError
+        case decodeError( String )
     }
     
-    func create(_ model: T) {
-        
+    func makeURL( route: String, pagination: PaginatedRequest? = nil) -> URL {
+        var components = URLComponents()
+        components.scheme = "http"
+        components.host = "localhost"
+        components.port = 8080
+        components.path = "/\(route)"
+        let url = components.url!
+        return url
+    }
+    
+}
+
+extension Service {
+    
+    func create(
+        _ model: T,
+        handler: @escaping (Result<T, Error>) -> Void
+    ) {
         guard let encodedData = try? JSONEncoder().encode(model) else {
+            handler(.failure( ServiceError.encodeError))
             return
         }
         
@@ -47,55 +74,125 @@ class Service<T:GenericModel>: ObservableObject {
         URLSession.shared.dataTask(with: request) { (data, response, error) in
             
             guard let data = data else {
+                handler(.failure( ServiceError.encodeError))
                 return
             }
             
             if let decodedResponse = try? JSONDecoder().decode(T.self, from: data) {
-                print( "model created on server \(decodedResponse)")
+                handler( .success(decodedResponse))
             } else {
                 let stringified = String(decoding: data, as: UTF8.self)
-                print( "error \(stringified)")
+                handler(.failure( ServiceError.decodeError( stringified )))
             }
             
         }.resume()
     }
     
-    func fetch() {
-        
-        let request = URLRequest(url: makeURL( route: T.route) )
-        
-        URLSession.shared.dataTask(with: request) { (data, response, error) in
-            
-            guard let data = data else {
-                return
+    public func fetch() {
+        let pagination:PaginatedRequest? = PaginatedRequest(page: 1, per: 10)
+        fetchModels(pagination: pagination) { result in
+            switch result {
+            case .success( let data ) :
+                self.models = data.items
+            case .failure( let error ):
+                print( "error \(error)")
             }
-            
-            if let decodedResponse = try? JSONDecoder().decode([T].self, from: data) {
-                print( "model created on server \(decodedResponse)")
-                self.models = decodedResponse
-            } else {
-                let stringified = String(decoding: data, as: UTF8.self)
-                print( "error \(stringified)")
-            }
-            
-        }.resume()
+        }
     }
     
 }
 
-
 extension Service {
-    
-    func signin() {
+
+    /// update
+    public func update(
+        _ model: T,
+        handler: @escaping (Result<T,Error>)->Void
+    ) {
         
+        guard let id = model.id else {
+            handler(.failure( ServiceError.invalidData))
+            return
+        }
+        
+        guard let encodedData = try? JSONEncoder().encode(model) else {
+            handler(.failure( ServiceError.invalidData))
+            return
+        }
+        
+        let extendedURL = makeURL(route: T.route).appendingPathComponent("/\(id)")
+        var request = URLRequest(url: extendedURL)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "PUT"
+        request.httpBody = encodedData
+        
+        URLSession.shared.dataTask(with: request) { (data, response, error) in
+            
+            guard let data = data else {
+                return handler( .failure(ServiceError.requestFailed))
+            }
+            
+            if let decodedResponse = try? JSONDecoder().decode(T.self, from: data) {
+                print( "\(decodedResponse)")
+                handler( .success(decodedResponse))
+            } else {
+                let stringResponse = String( decoding: data, as: UTF8.self )
+                handler(.failure( ServiceError.decodeError(stringResponse)))
+            }
+        }.resume()
     }
     
-    func signup() {
+    
+    /// delete
+    public func delete(
+        _ model: T,
+        callback: @escaping (Result<T,Error>)->Void
+    ) {
         
+        guard let id = model.id else {
+            callback(.failure( ServiceError.invalidData))
+            return
+        }
+        
+        let extendedURL = makeURL(route: T.route).appendingPathComponent("/\(id)")
+        var request = URLRequest(url: extendedURL)
+        request.httpMethod = "DELETE"
+        
+        URLSession.shared.dataTask(with: request) { (data, response, error) in
+            
+            if let response = response as? HTTPURLResponse  {
+                if response.statusCode == 200 {
+                    callback( .success(model))
+                } else {
+                    callback(.failure( ServiceError.requestFailed))
+                }
+            } else {
+                callback(.failure( ServiceError.requestFailed))
+            }
+        }.resume()
     }
 
-    func signout() {
+    /// fetchModels
+    private func fetchModels(
+        pagination: PaginatedRequest?,
+        callback: @escaping (Result<PagedResponse<T>,Error>)->Void
+    ) {
         
+        let request = URLRequest(url: self.makeURL(route: T.route, pagination: pagination))
+        
+        URLSession.shared.dataTask(with: request) { (data, response, error) in
+            
+            guard let data = data else {
+                callback(.failure( ServiceError.unknownError))
+                return
+            }
+            
+            if let pagedResponseModel = try? JSONDecoder.init().decode(PagedResponse<T>.self, from: data) {
+                callback( .success(pagedResponseModel))
+            } else {
+                let dataString = String(decoding: data, as: UTF8.self)
+                callback(.failure( ServiceError.decodeError(dataString)))
+            }
+        }.resume()
     }
-    
 }
