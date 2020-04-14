@@ -1,5 +1,6 @@
 DemoServerApp 
 ===
 
-Companion app for the Swift Demo Server 
+Companion iOS demo app for the Swift [Demo Swift Vapor Server](https://github.com/mschmulen/DemoServer)
+
 

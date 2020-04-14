@@ -9,11 +9,11 @@
 import Foundation
 import Combine
 
-class Service: ObservableObject {
+class Service<T:GenericModel>: ObservableObject {
     
     public let objectWillChange = PassthroughSubject<Void,Never>()
     
-    @Published var models:[TodoModel] = [TodoModel]() {
+    @Published var models:[T] = [T]() {
         didSet {
             DispatchQueue.main.async {
                 self.objectWillChange.send()
@@ -21,13 +21,17 @@ class Service: ObservableObject {
         }
     }
     
-    func create(_ model:TodoModel) {
+    func makeURL( route: String) -> URL {
+        return URL(string:"http://localhost:8080/\(route)")!
+    }
+    
+    func create(_ model: T) {
         
         guard let encodedData = try? JSONEncoder().encode(model) else {
             return
         }
         
-        var request = URLRequest(url: URL(string:"http://localhost:8080/\(TodoModel.route)")!)
+        var request = URLRequest(url: makeURL( route: T.route) )
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "POST"
         request.httpBody = encodedData
@@ -38,7 +42,7 @@ class Service: ObservableObject {
                 return
             }
             
-            if let decodedResponse = try? JSONDecoder().decode(TodoModel.self, from: data) {
+            if let decodedResponse = try? JSONDecoder().decode(T.self, from: data) {
                 print( "model created on server \(decodedResponse)")
             } else {
                 let stringified = String(decoding: data, as: UTF8.self)
@@ -50,7 +54,7 @@ class Service: ObservableObject {
     
     func fetch() {
         
-        var request = URLRequest(url: URL(string:"http://localhost:8080/\(TodoModel.route)")!)
+        let request = URLRequest(url: makeURL( route: T.route) )
         
         URLSession.shared.dataTask(with: request) { (data, response, error) in
             
@@ -58,7 +62,7 @@ class Service: ObservableObject {
                 return
             }
             
-            if let decodedResponse = try? JSONDecoder().decode([TodoModel].self, from: data) {
+            if let decodedResponse = try? JSONDecoder().decode([T].self, from: data) {
                 print( "model created on server \(decodedResponse)")
                 self.models = decodedResponse
             } else {

@@ -11,28 +11,40 @@ import Combine
 
 struct ContentView: View {
     
-    @EnvironmentObject var service:Service
+    @EnvironmentObject var service: Service<BoatModel>
     
     var body: some View {
-        Form {
-            Text("Hello, Swift Server \(service.models.count)")
-            
-            Button(action: {
-                self.service.create(
-                    TodoModel(id: nil, title: "todo_\(Int.random(in: 1...100))")
-                )
-            }) {
-                Text("create")
-            }
-            
-            Button(action: {
-                self.service.fetch()
-            }) {
-                Text("fetch")
-            }
+        
+        NavigationView {
+            Form {
+                Text("Hello, Swift Server \(service.models.count)")
+                
+                Button(action: {
+                    self.service.create(
+                        BoatModel(id: nil, title: "boat_\(Int.random(in: 1...100))")
+                    )
+                    self.service.fetch()
+                }) {
+                    Text("create")
+                }
+                
+                Button(action: {
+                    self.service.fetch()
+                }) {
+                    Text("fetch")
+                }
+                
+                ForEach( service.models, id:\.id) { model in
+                    NavigationLink(destination: ModelDetailView(model:model)) {
+                        Text("\(model.title)")
+                    }
+                }
+            }//end form
+        }.onAppear {
+            self.service.fetch()
         }
-    }
-}
+    }//end body
+}//end struct
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
