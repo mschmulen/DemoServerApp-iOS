@@ -7,10 +7,30 @@
 //
 
 import SwiftUI
+import Combine
 
 struct ContentView: View {
+    
+    @EnvironmentObject var service:Service
+    
     var body: some View {
-        Text("Hello, World!")
+        Form {
+            Text("Hello, Swift Server \(service.models.count)")
+            
+            Button(action: {
+                self.service.create(
+                    TodoModel(id: nil, title: "todo_\(Int.random(in: 1...100))")
+                )
+            }) {
+                Text("create")
+            }
+            
+            Button(action: {
+                self.service.fetch()
+            }) {
+                Text("fetch")
+            }
+        }
     }
 }
 
