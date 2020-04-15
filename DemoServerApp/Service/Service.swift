@@ -82,6 +82,7 @@ extension Service {
                 handler( .success(decodedResponse))
             } else {
                 let stringified = String(decoding: data, as: UTF8.self)
+                print( "\(stringified)")
                 handler(.failure( ServiceError.decodeError( stringified )))
             }
             
@@ -196,3 +197,22 @@ extension Service {
         }.resume()
     }
 }
+
+
+public struct PaginatedRequest {
+    let page:Int
+    let per:Int
+}
+
+public struct PagedResponse<T:Codable>: Codable {
+    
+    public var items: [T]
+    public var metadata: MetaData
+    
+    public struct MetaData: Codable {
+        var per: Int
+        var total: Int
+        var page: Int
+    }
+}
+

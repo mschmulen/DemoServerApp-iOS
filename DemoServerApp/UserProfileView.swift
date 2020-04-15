@@ -17,7 +17,7 @@ struct UserProfileView: View {
             Text("UserProfile")
             
             Text("email: \(service.currentUserAuth?.email ?? "~")")
-            Text("id: \(service.currentUserAuth?.id?.uuidString ?? "~")")
+            Text("id: \(service.currentUserAuth?.id.uuidString ?? "~")")
             Text("sessionToken: \(service.currentUserAuth?.sessionToken ?? "~")")
             
             Button(action: {

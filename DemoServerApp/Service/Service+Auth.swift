@@ -46,16 +46,14 @@ extension Service {
             }
             
             if let encodedModel = try? JSONDecoder().decode(UserModel.UserAuthResponse.self, from:data) {
-                if let modelID = encodedModel.id, let sessionToken = encodedModel.sessionToken {
+                if let sessionToken = encodedModel.sessionToken {
                     self.currentUserAuth = encodedModel
-                    if let userID = encodedModel.id?.uuidString, let token = encodedModel.sessionToken {
-                        self.updateUserDefaults( data: AppUserDefaultData(
-                            userID: userID,
-                            userEmail: encodedModel.email,
-                            userPassword: password,
-                            sessionToken: token
-                        ))
-                    }
+                    self.updateUserDefaults( data: AppUserDefaultData(
+                        userID: encodedModel.id.uuidString,
+                        userEmail: encodedModel.email,
+                        userPassword: password,
+                        sessionToken: sessionToken
+                    ))
                     handler(.success(encodedModel))
                 } else {
                     print( "reason \(encodedModel.reason)")
@@ -104,16 +102,14 @@ extension Service {
             }
             
             if let encodedModel = try? JSONDecoder().decode(UserModel.UserAuthResponse.self, from:data) {
-                if let modelID = encodedModel.id, let sessionToken = encodedModel.sessionToken {
+                if let sessionToken = encodedModel.sessionToken {
                     self.currentUserAuth = encodedModel
-                    if let userID = encodedModel.id?.uuidString, let token = encodedModel.sessionToken {
-                        self.updateUserDefaults( data: AppUserDefaultData(
-                            userID: userID,
-                            userEmail: encodedModel.email,
-                            userPassword: password,
-                            sessionToken: token
-                        ))
-                    }
+                    self.updateUserDefaults( data: AppUserDefaultData(
+                        userID: encodedModel.id.uuidString,
+                        userEmail: encodedModel.email,
+                        userPassword: password,
+                        sessionToken: sessionToken
+                    ))
                     handler(.success(encodedModel))
                 } else {
                     handler(.failure(ServiceError.unknownError))

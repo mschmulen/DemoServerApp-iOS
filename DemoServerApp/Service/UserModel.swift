@@ -41,7 +41,7 @@ extension UserModel {
     public struct UserAuthResponse: Codable {
         public var email: String
         public var reason:String
-        public var id: UUID?
+        public var id: UUID
         public var sessionToken: String?
     }
     
@@ -55,4 +55,7 @@ extension UserModel {
         public var email:String
     }
     
+    public struct UserReferenceModel: Codable {
+        public var id:UUID
+    }
 }

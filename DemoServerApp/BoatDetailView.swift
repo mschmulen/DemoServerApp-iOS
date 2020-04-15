@@ -1,5 +1,5 @@
 //
-//  ModelDetailView.swift
+//  BoatDetailView.swift
 //
 //  DemoServerApp
 //  Created by Matthew Schmulen on 4/14/20.
@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct ModelDetailView: View {
+struct BoatDetailView: View {
     
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var service: Service<BoatModel>
@@ -27,7 +27,7 @@ struct ModelDetailView: View {
                     }
                 }
             }) {
-                Text("UPDATE")
+                Text("SAVE")
             }.disabled((model.id == nil))
 
         } else {
@@ -61,22 +61,45 @@ struct ModelDetailView: View {
         }.disabled((model.id == nil))
     }
     
-    var header: some View {
+    var footer: some View {
         Text("\(model.id?.uuidString ?? "~") ")
     }
-
     
     var body: some View {
         Form {
             
-            header
-            
             TextField("title", text: $model.title)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
             TextField("name", text: $model.name)
-            Text("length: \(model.length) ")
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            TextField("builder", text: $model.builder)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
             
-            saveButton
-            deleteButton
+            Toggle(isOn: $model.isFeatured){ Text("isFeatured:") }
+            
+            TextField("length", value: $model.length, formatter: NumberFormatter())
+                .font(.body).foregroundColor(.blue)
+                .padding()
+                .background(Color.white)
+                .multilineTextAlignment(.center)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            TextField("price", value: $model.price, formatter: currencyFormatter)
+                .font(.largeTitle)
+                .padding()
+                .background(Color.white)
+                .multilineTextAlignment(.center)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            Text("userReference: \(model.userReference.id) ")
+            
+            Section {
+                saveButton
+                deleteButton
+            }
+            
+            footer
+            
         }
     }
     
@@ -85,6 +108,16 @@ struct ModelDetailView: View {
             self.presentationMode.wrappedValue.dismiss()
         }
     }
+    
+    public var currencyFormatter:NumberFormatter {
+        get {
+            let f = NumberFormatter()
+            f.numberStyle = .currency
+            f.usesGroupingSeparator = true
+            return f
+        }
+    }
+    
 }
 
 
